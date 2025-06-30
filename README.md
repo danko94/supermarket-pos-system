@@ -55,3 +55,4 @@ See `SECURITY.md` for detailed security documentation.
 The system automatically loads sample data on startup from CSV files:
 - `products_list.csv` - Product catalog
 - `purchases.csv` - Historical purchase data
+- `supermarkets.csv` - Supermarket IDs
