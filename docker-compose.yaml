@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:15
+    env_file:
+      - .env
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-root} -d $${POSTGRES_DB:-supermarket}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  cash_register:
+    build:
+      context: .
+      dockerfile: cash_register/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      init_data:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      init_data:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+
+  init_data:
+    build:
+      context: .
+      dockerfile: cash_register/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    command: ["python", "-m", "db.init_all_data"]
+    restart: no
