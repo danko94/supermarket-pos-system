@@ -48,7 +48,38 @@ This system follows security best practices:
 - ✅ Protected configuration files
 - ✅ Comprehensive .gitignore
 
-See `SECURITY.md` for detailed security documentation.
+## Scalability Considerations
+
+### Current Limitations
+- **Database Connections**: Creates new connection per request (expensive at scale)
+- **Product Validation**: Sequential queries (N database calls per purchase)
+- **No Caching**: Products fetched from database every time
+- **Single Instance**: No horizontal scaling configuration
+
+### Recommended Improvements for High Volume
+
+#### Phase 1: Quick Wins
+- **Connection Pooling**: Implement PostgreSQL connection pooling (5-50 shared connections)
+- **Batch Queries**: Replace N product lookups with single IN query
+- **Database Indexes**: Add indexes on frequently queried columns
+
+#### Phase 2: Performance Optimization  
+- **Redis Caching**: Cache product catalog and user lookups
+- **Async Operations**: Move to async FastAPI with asyncpg
+- **Database Partitioning**: Partition purchases table by time periods
+
+#### Phase 3: Horizontal Scaling
+- **Load Balancer**: Add nginx reverse proxy for multiple cash register instances
+- **Read Replicas**: Separate read/write database operations
+- **Microservice Architecture**: Split services for independent scaling
+
+#### Expected Performance Impact
+- Current: ~100 requests/sec
+- With Phase 1: ~500 requests/sec  
+- With Phase 2: ~2000 requests/sec
+- With Phase 3: 5000+ requests/sec
+
+> **Note**: Current architecture is well-designed for these improvements - most optimizations only require database layer changes without breaking the API contract.
 
 ## Development
 

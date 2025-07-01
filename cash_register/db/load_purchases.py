@@ -31,7 +31,7 @@ def load_purchases(csv_path: str) -> None:
             
             # Insert customer record if we haven't seen this UUID before
             if user_uuid not in seen_uuids:
-                real_id: str = f"customer_{customer_counter:06d}"
+                real_id: str = f"customer{customer_counter:06d}"
                 cur.execute("""
                     INSERT INTO customers (real_id, uuid)
                     VALUES (%s, %s)
