@@ -20,7 +20,7 @@ This system consists of:
 
 2. **Start the system:**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 3. **Access the services:**
