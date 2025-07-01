@@ -135,7 +135,7 @@ class PurchaseRequest(BaseModel):
 **Length Limits:**
 - `real_id`: 1-20 characters (prevents buffer overflow attacks)
 - `supermarket_id`: Exactly 7 characters
-- `item_names`: 1-50 items max, each item ≤100 characters
+- `item_names`: Since every customer can purchase one of each item the max item count is the amount of distinctive items in the catalog, each item ≤100 characters
 - List size limits prevent DoS attacks
 
 **Format Validation:**
