@@ -1,4 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, validator
 from typing import List, Dict, Any
 import uuid
@@ -8,6 +10,9 @@ from datetime import datetime, timezone
 from shared.db_config import validate_env_vars, get_db_config
 
 app = FastAPI()
+
+# Initialize templates
+templates = Jinja2Templates(directory="templates")
 
 # Validate environment variables on startup
 validate_env_vars()
@@ -220,3 +225,58 @@ def register_purchase(purchase: PurchaseRequest) -> Dict[str, Any]:
         "total": total,
         "message": "Purchase recorded"
     }
+
+
+# ----- UI Routes -----
+def get_all_products():
+    """Get all products from database for UI"""
+    conn = psycopg2.connect(**DB_CONFIG)
+    cur = conn.cursor()
+    
+    cur.execute("SELECT name, price FROM products ORDER BY name")
+    products = [{"name": row[0], "price": float(row[1])} for row in cur.fetchall()]
+    
+    cur.close()
+    conn.close()
+    return products
+
+
+def get_all_supermarkets():
+    """Get all supermarket IDs for UI"""
+    conn = psycopg2.connect(**DB_CONFIG)
+    cur = conn.cursor()
+    
+    cur.execute("SELECT id FROM supermarkets ORDER BY id")
+    supermarkets = [row[0] for row in cur.fetchall()]
+    
+    cur.close()
+    conn.close()
+    return supermarkets
+
+
+@app.get("/", response_class=HTMLResponse)
+def select_supermarket(request: Request):
+    """Serve the supermarket selection page"""
+    supermarkets = get_all_supermarkets()
+    
+    return templates.TemplateResponse("select_supermarket.html", {
+        "request": request,
+        "supermarkets": supermarkets
+    })
+
+@app.get("/cash-register", response_class=HTMLResponse)
+def cash_register_ui(request: Request, supermarket_id: str):
+    """Serve the cash register UI for a specific supermarket"""
+    products = get_all_products()
+    supermarkets = get_all_supermarkets()
+    
+    # Validate that the supermarket_id exists
+    if supermarket_id not in supermarkets:
+        raise HTTPException(status_code=400, detail="Invalid supermarket ID")
+    
+    return templates.TemplateResponse("cash_register.html", {
+        "request": request,
+        "products": products,
+        "supermarkets": supermarkets,
+        "supermarket_id": supermarket_id
+    })

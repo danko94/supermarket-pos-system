@@ -1,9 +1,14 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 import psycopg2
 from typing import Dict, Any, List
 from shared.db_config import validate_env_vars, get_db_config, get_db_connection
 
 app = FastAPI(title="Supermarket Analytics Dashboard", version="1.0.0")
+
+# Initialize templates
+templates = Jinja2Templates(directory="templates")
 
 # Validate environment variables on startup
 validate_env_vars()
@@ -17,9 +22,16 @@ def get_dashboard_db_connection() -> psycopg2.extensions.connection:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database connection failed: {str(e)}")
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
+def dashboard_ui(request: Request):
+    """Serve the dashboard UI"""
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request
+    })
+
+@app.get("/api")
 def read_root() -> Dict[str, str]:
-    """Dashboard home endpoint"""
+    """Dashboard API info endpoint"""
     return {"message": "Supermarket Analytics Dashboard API", "version": "1.0.0"}
 
 @app.get("/health")
