@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supermarket Analytics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-number.customers {
+            color: #28a745;
+        }
+        
+        .stat-number.loyal {
+            color: #ff6b6b;
+        }
+        
+        .stat-number.products {
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 1.1em;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .sections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .section-header {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .section-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .section-content {
+            padding: 25px;
+        }
+        
+        .customer-list {
+            list-style: none;
+        }
+        
+        .customer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .customer-item:last-child {
+            border-bottom: none;
+        }
+        
+        .customer-info {
+            flex: 1;
+        }
+        
+        .customer-id {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .customer-stats {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .customer-spent {
+            font-weight: bold;
+            color: #28a745;
+            font-size: 1.1em;
+        }
+        
+        .product-list {
+            list-style: none;
+        }
+        
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .product-item:last-child {
+            border-bottom: none;
+        }
+        
+        .product-name {
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+        }
+        
+        .product-sales {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+        }
+        
+        .refresh-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: block;
+            margin: 30px auto;
+        }
+        
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+        
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sections-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .stat-number {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Supermarket Analytics Dashboard</h1>
+            <p>Real-time insights and analytics for your supermarket chain</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number customers" id="uniqueCustomers">-</div>
+                <div class="stat-label">Unique Customers</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number loyal" id="loyalCustomersCount">-</div>
+                <div class="stat-label">Loyal Customers (3+ purchases)</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number products" id="topProductsCount">-</div>
+                <div class="stat-label">Top Products</div>
+            </div>
+        </div>
+        
+        <div class="sections-grid">
+            <div class="section">
+                <div class="section-header">
+                    <h2>👑 Loyal Customers</h2>
+                    <p>Customers with 3 or more purchases</p>
+                </div>
+                <div class="section-content">
+                    <ul class="customer-list" id="loyalCustomersList">
+                        <li class="no-data">Loading...</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <h2>🏆 Top Products</h2>
+                    <p>Best-selling products of all time</p>
+                </div>
+                <div class="section-content">
+                    <ul class="product-list" id="topProductsList">
+                        <li class="no-data">Loading...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <button class="refresh-btn" onclick="loadDashboardData()">
+            🔄 Refresh Data
+        </button>
+    </div>
+
+    <script>
+        let isLoading = false;
+
+        async function loadDashboardData() {
+            if (isLoading) return;
+            
+            isLoading = true;
+            const refreshBtn = document.querySelector('.refresh-btn');
+            refreshBtn.classList.add('loading');
+            refreshBtn.textContent = '⏳ Loading...';
+            
+            try {
+                // Load all data in parallel
+                const [uniqueCustomers, loyalCustomers, topProducts] = await Promise.all([
+                    fetch('/unique-customers').then(res => res.json()),
+                    fetch('/loyal-customers').then(res => res.json()),
+                    fetch('/top-products').then(res => res.json())
+                ]);
+                
+                // Update stats
+                document.getElementById('uniqueCustomers').textContent = uniqueCustomers.unique_customers;
+                document.getElementById('loyalCustomersCount').textContent = loyalCustomers.count;
+                document.getElementById('topProductsCount').textContent = topProducts.count;
+                
+                // Update loyal customers list
+                const loyalCustomersList = document.getElementById('loyalCustomersList');
+                if (loyalCustomers.loyal_customers.length === 0) {
+                    loyalCustomersList.innerHTML = '<li class="no-data">No loyal customers yet</li>';
+                } else {
+                    loyalCustomersList.innerHTML = loyalCustomers.loyal_customers.map(customer => `
+                        <li class="customer-item">
+                            <div class="customer-info">
+                                <div class="customer-id">Customer: ${customer.customer_id}</div>
+                                <div class="customer-stats">${customer.purchase_count} purchases</div>
+                            </div>
+                            <div class="customer-spent">$${customer.total_spent.toFixed(2)}</div>
+                        </li>
+                    `).join('');
+                }
+                
+                // Update top products list
+                const topProductsList = document.getElementById('topProductsList');
+                if (topProducts.top_products.length === 0) {
+                    topProductsList.innerHTML = '<li class="no-data">No products sold yet</li>';
+                } else {
+                    topProductsList.innerHTML = topProducts.top_products.map(product => `
+                        <li class="product-item">
+                            <div class="product-name">${product.product_name}</div>
+                            <div class="product-sales">${product.sales_count} sold</div>
+                        </li>
+                    `).join('');
+                }
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                
+                // Show error in UI
+                document.getElementById('uniqueCustomers').textContent = 'Error';
+                document.getElementById('loyalCustomersCount').textContent = 'Error';
+                document.getElementById('topProductsCount').textContent = 'Error';
+                
+                document.getElementById('loyalCustomersList').innerHTML = 
+                    '<li class="no-data">Error loading data. Please try again.</li>';
+                document.getElementById('topProductsList').innerHTML = 
+                    '<li class="no-data">Error loading data. Please try again.</li>';
+            } finally {
+                isLoading = false;
+                refreshBtn.classList.remove('loading');
+                refreshBtn.textContent = '🔄 Refresh Data';
+            }
+        }
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadDashboardData, 30000);
+    </script>
+</body>
+</html>
